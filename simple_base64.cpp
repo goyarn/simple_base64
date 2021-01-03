@@ -49,5 +49,21 @@ std::string Base64::encode(std::string str){
 
 std::string Base64::decode(std::string code){
 	std::string decoded;
+	int d, prev_d;
+	int phase = 0;
+	for(char &ch : code){
+		d = decoding_table[(int)ch];
+		if (d == -1) continue;
+		// make 6bits to 8bits.
+		char c;
+		if (phase == 1) c = (prev_d << 2) | ((d & 0x30) >> 4);
+		else if (phase == 2) c = ((prev_d & 0xf) << 4) | ((d & 0x3c) >> 2);
+		else if (phase == 3) c = ((prev_d & 0x03) << 6) | d;
+		// append only when new characters decoded.
+		if (phase > 0)
+			decoded.push_back(c);
+		phase = (phase + 1) % 4;
+		prev_d = d;
+	}
 	return decoded;
 }
