@@ -9,10 +9,9 @@ class Base64{
 		static std::string encode(std::string str);
 		static std::string decode(std::string code);
 
+		static std::string get_encoding_table(void);
+		static std::vector<int> get_decoding_table(void);
 	private:
-		void initialize(void);
-		static std::string encoding_table;
-		static std::vector<int> decoding_table;
 };
 
 #endif

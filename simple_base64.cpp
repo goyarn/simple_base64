@@ -1,20 +1,29 @@
 #include "simple_base64.hpp"
+#include <string>
+#include <vector>
 
-void Base64::initialize(void){
-	encoding_table =
+std::string Base64::get_encoding_table(void){
+	static std::string encoding_table =
 		std::string("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
 		+ std::string("abcdefghijklmnopqrstuvwxyz")
 		+ std::string("0123456789+/");
-	decoding_table = std::vector<int>(256, -1);
+	return encoding_table;
+}
+
+std::vector<int> Base64::get_decoding_table(void){
+	static std::vector<int> decoding_table(256, -1);
+	auto encoding_table = get_encoding_table();
 	for(int i = 0; i < 64; ++i){
 		int index = (int)encoding_table[i];
 		decoding_table[index] = i;
 	}
+	return decoding_table;
 }
 
 std::string Base64::encode(std::string str){
 	if (str.empty()) return str;
 	std::string encoded;
+	auto encoding_table = Base64::get_encoding_table();
 	int size = str.size();
 
 	unsigned char input[3];
@@ -26,7 +35,7 @@ std::string Base64::encode(std::string str){
 		if (mod == 2 || pos == size - 1){
 			output[0] = (input[0] & 0xFC) >> 2;
 			output[1] = ((input[0] & 0x3) << 4) | ((input[1] & 0xF0) >> 4);
-			output[2] = ((input[1] & 0xF) << 4) | ((input[2] & 0xC0) >> 4);
+			output[2] = ((input[1] & 0xF) << 2) | ((input[2] & 0xC0) >> 6);
 			output[3] = input[2] & 0x3F;
 
 			encoded.push_back(encoding_table[output[0]]);
@@ -52,7 +61,7 @@ std::string Base64::decode(std::string code){
 	int d, prev_d;
 	int phase = 0;
 	for(char &ch : code){
-		d = decoding_table[(int)ch];
+		d = Base64::get_decoding_table()[(int)ch];
 		if (d == -1) continue;
 		// make 6bits to 8bits.
 		char c;
